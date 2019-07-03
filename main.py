@@ -1,13 +1,10 @@
+import autopopulator
 from bs4 import BeautifulSoup
 from datetime import datetime
-import os.path
 import random
 import re
 import requests
-
-
-def init_lunch_urls_list():
-    open('lunch_urls.txt', 'a').close()
+import sys
 
 
 def get_random_url():
@@ -51,6 +48,7 @@ def get_menu(url):
         dishes = dishes.replace(' l ', '')
         dishes = dishes.replace(' G ', '')
         dishes = dishes.replace(' g ', '')
+        dishes = dishes.replace(' m ', '')
         dishes = re.sub(r'\s\s+', '\n', dishes)
         dishes = dishes.strip()
         output += '\n' + dishes
@@ -60,15 +58,26 @@ def get_menu(url):
 def get_random_menu():
     try:
         url = get_random_url()
-        print url
+        print url.encode('utf-8').strip()
         menu = get_menu(url)
-        print '\n' + menu
+        print ('\n' + menu).encode('utf-8').strip()
     except Exception as e:
         print e
 
 
-if os.path.exists('lunch_urls.txt'):
+def lunch_urls_is_populated():
+    try:
+        f = open('lunch_urls.txt', 'r')
+        count = len(f.readlines())
+        f.close()
+        return count != 0
+    except IOError:
+        return False
+
+
+zip_code = sys.argv.pop()
+if not lunch_urls_is_populated() and zip_code is not None:
+    autopopulator.generate_lunch_urls(zip_code=zip_code)
+
+if lunch_urls_is_populated():
     get_random_menu()
-else:
-    init_lunch_urls_list()
-    print 'lunch_urls.txt file created. Add www.lounaat.info urls to restaurants to that file.'
